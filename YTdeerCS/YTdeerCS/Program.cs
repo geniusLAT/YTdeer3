@@ -25,7 +25,7 @@ class Program
             .BuildServiceProvider();
 
         var bot = serviceProvider.GetService<TelegramBot>()!;
-        await bot.Main();
+        await bot.PollAsync();
     } 
 }
 
