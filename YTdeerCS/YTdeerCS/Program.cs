@@ -8,6 +8,7 @@ using NAudio;
 using YoutubeExplode.Videos.Streams;
 using YTdeerCS.YouTubeDownloaders;
 using YTdeerCS.TelegramBot;
+using YTdeerCS.Loggers;
 
 
 class Program
@@ -17,7 +18,9 @@ class Program
         YouTubeDownloader downloader = new();
         var task = Task.Run(()=>downloader.Download("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
 
-        var bot = new TelegramBot();
+        var logger = new ConsoleLogger<TelegramBot>();
+
+        var bot = new TelegramBot(logger);
         var botTask = Task.Run(() => bot.Main());
 
         while(true) {; }

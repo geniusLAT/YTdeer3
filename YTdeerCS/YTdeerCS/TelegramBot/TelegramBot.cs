@@ -8,6 +8,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using System.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace YTdeerCS.TelegramBot;
 
@@ -19,10 +20,13 @@ public class TelegramBot
 
     private string _botToken;
 
+    private ILogger<TelegramBot> _logger;
+
     //code example: https://habr.com/ru/articles/756814/
 
-    public TelegramBot()
+    public TelegramBot(ILogger<TelegramBot> logger)
     {
+        _logger = logger;
         _botToken = ConfigurationManager.AppSettings["BotToken"]!;
 
         if (string.IsNullOrEmpty(_botToken))
@@ -49,7 +53,7 @@ public class TelegramBot
         _botClient.StartReceiving(UpdateHandler, ErrorHandler, _receiverOptions, cts.Token);
 
         var me = await _botClient.GetMeAsync(); 
-        Console.WriteLine($"{me.FirstName} запущен!");
+        _logger.LogInformation($"{me.FirstName} запущен!");
 
         await Task.Delay(-1); 
     }
@@ -84,7 +88,7 @@ public class TelegramBot
 
                         var user = message.From;
 
-                        Console.WriteLine($"{user.FirstName} ({user.Id}) написал сообщение: {message.Text}");
+                        _logger.LogInformation($"{user.FirstName} ({user.Id}) написал сообщение: {message.Text}");
 
                         if(message.Text == null)
                         {
@@ -107,7 +111,7 @@ public class TelegramBot
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            _logger.LogInformation(ex.ToString());
         }
     }
 
@@ -120,7 +124,7 @@ public class TelegramBot
             _ => error.ToString()
         };
 
-        Console.WriteLine(ErrorMessage);
+        _logger.LogInformation(ErrorMessage);
         return Task.CompletedTask;
     }
 }
