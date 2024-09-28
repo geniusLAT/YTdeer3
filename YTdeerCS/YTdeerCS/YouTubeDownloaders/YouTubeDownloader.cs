@@ -4,7 +4,7 @@ using YoutubeExplode.Videos.Streams;
 
 namespace YTdeerCS.YouTubeDownloaders;
 
-public class YouTubeDownloader
+public class YouTubeDownloader : IYouTubeDownloader
 {
     private ILogger<YouTubeDownloader> _logger;
 
