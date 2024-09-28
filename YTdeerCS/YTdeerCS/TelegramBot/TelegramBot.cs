@@ -9,6 +9,10 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using System.Configuration;
 using Microsoft.Extensions.Logging;
+using YTdeerCS.YouTubeDownloaders;
+using System.IO;
+using System.Threading.Tasks;
+
 
 namespace YTdeerCS.TelegramBot;
 
@@ -22,10 +26,13 @@ public class TelegramBot : ITelegramBot
 
     private ILogger<TelegramBot> _logger;
 
+    private IYouTubeDownloader _youTubeDownloader;
+
     //code example: https://habr.com/ru/articles/756814/
 
-    public TelegramBot(ILogger<TelegramBot> logger)
+    public TelegramBot(ILogger<TelegramBot> logger, IYouTubeDownloader youTubeDownloader)
     {
+        _youTubeDownloader = youTubeDownloader;
         _logger = logger;
         _botToken = ConfigurationManager.AppSettings["BotToken"]!;
 
@@ -99,11 +106,13 @@ public class TelegramBot : ITelegramBot
                             );
                         }
 
-                        await botClient.SendTextMessageAsync(
-                            chat.Id,
-                            message.Text!, 
-                            replyToMessageId: message.MessageId 
-                            );
+                        //await botClient.SendTextMessageAsync(
+                        //    chat.Id,
+                        //    message.Text!, 
+                        //    replyToMessageId: message.MessageId 
+                        //    );
+
+                        Task.Run(() => TryDownLoadVideoAsync(botClient, message));
 
                         return;
                     }
@@ -126,5 +135,37 @@ public class TelegramBot : ITelegramBot
 
         _logger.LogInformation(ErrorMessage);
         return Task.CompletedTask;
+    }
+
+    private async Task TryDownLoadVideoAsync(ITelegramBotClient botClient, Message message)
+    {
+        var chat = message.Chat;
+        var potentialUrl = message.Text!;
+        try
+        {
+            var audioFilePath = await _youTubeDownloader.Download(potentialUrl);
+
+            using (var stream = new FileStream(audioFilePath, FileMode.Open, FileAccess.Read))
+            {
+                InputFile inputFile = new Telegram.Bot.Types.InputFileStream(stream);
+
+                Telegram.Bot.Types.InputMediaAudio audio = new(inputFile);
+
+                await botClient.SendAudioAsync(
+                    chat.Id,
+                    inputFile,
+                    replyToMessageId: message.MessageId
+                );
+            }
+            return;
+        }
+        catch(Exception e){
+            await botClient.SendTextMessageAsync(
+                               chat.Id,
+                               $"Error: {e.Message} ",
+                               replyToMessageId: message.MessageId
+                               );
+            return;
+        }
     }
 }

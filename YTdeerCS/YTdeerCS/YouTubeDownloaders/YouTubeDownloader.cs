@@ -28,12 +28,12 @@ public class YouTubeDownloader : IYouTubeDownloader
 
         using (var httpClient = new HttpClient())
         using (var stream = await httpClient.GetStreamAsync(audioStreamInfo.Url))
-        using (var fileStream = new FileStream($"{video.Title}.mp3", FileMode.Create, FileAccess.Write, FileShare.None))
+        using (var fileStream = new FileStream($"downloads/{video.Title}.mp3", FileMode.Create, FileAccess.Write, FileShare.None))
         {
             await stream.CopyToAsync(fileStream);
         }
 
         _logger.LogInformation($"Audio saved as {video.Title}.mp3");
-        return $"{video.Title}.mp3";
+        return $"downloads/{video.Title}.mp3";
     }
 }
