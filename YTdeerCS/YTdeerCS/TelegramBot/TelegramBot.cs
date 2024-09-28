@@ -147,9 +147,7 @@ public class TelegramBot : ITelegramBot
 
             using (var stream = new FileStream(audioFilePath, FileMode.Open, FileAccess.Read))
             {
-                InputFile inputFile = new Telegram.Bot.Types.InputFileStream(stream);
-
-                Telegram.Bot.Types.InputMediaAudio audio = new(inputFile);
+                InputFile inputFile = new InputFileStream(stream);
 
                 await botClient.SendAudioAsync(
                     chat.Id,
