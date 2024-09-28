@@ -9,10 +9,14 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using System.Configuration;
 using Microsoft.Extensions.Logging;
+using YTdeerCS.YouTubeDownloaders;
+using System.IO;
+using System.Threading.Tasks;
+
 
 namespace YTdeerCS.TelegramBot;
 
-public class TelegramBot
+public class TelegramBot : ITelegramBot
 {
     private ITelegramBotClient? _botClient;
 
@@ -22,10 +26,13 @@ public class TelegramBot
 
     private ILogger<TelegramBot> _logger;
 
+    private IYouTubeDownloader _youTubeDownloader;
+
     //code example: https://habr.com/ru/articles/756814/
 
-    public TelegramBot(ILogger<TelegramBot> logger)
+    public TelegramBot(ILogger<TelegramBot> logger, IYouTubeDownloader youTubeDownloader)
     {
+        _youTubeDownloader = youTubeDownloader;
         _logger = logger;
         _botToken = ConfigurationManager.AppSettings["BotToken"]!;
 
@@ -97,13 +104,16 @@ public class TelegramBot
                             "Что? Я же говорю, надо прислать ссылку на YouTube. Тут 0 букв. НОЛЬ. Карл", 
                             replyToMessageId: message.MessageId 
                             );
+                            return;
                         }
 
-                        await botClient.SendTextMessageAsync(
-                            chat.Id,
-                            message.Text!, 
-                            replyToMessageId: message.MessageId 
-                            );
+                        //await botClient.SendTextMessageAsync(
+                        //    chat.Id,
+                        //    message.Text!, 
+                        //    replyToMessageId: message.MessageId 
+                        //    );
+
+                        Task.Run(() => TryDownLoadVideoAsync(botClient, message));
 
                         return;
                     }
@@ -126,5 +136,35 @@ public class TelegramBot
 
         _logger.LogInformation(ErrorMessage);
         return Task.CompletedTask;
+    }
+
+    private async Task TryDownLoadVideoAsync(ITelegramBotClient botClient, Message message)
+    {
+        var chat = message.Chat;
+        var potentialUrl = message.Text!;
+        try
+        {
+            var audioFilePath = await _youTubeDownloader.Download(potentialUrl);
+
+            using (var stream = new FileStream(audioFilePath, FileMode.Open, FileAccess.Read))
+            {
+                InputFile inputFile = new InputFileStream(stream, audioFilePath.Split('\\').Last());
+
+                await botClient.SendAudioAsync(
+                    chat.Id,
+                    inputFile,
+                    replyToMessageId: message.MessageId
+                );
+            }
+            return;
+        }
+        catch(Exception e){
+            await botClient.SendTextMessageAsync(
+                               chat.Id,
+                               $"Error: {e.Message} ",
+                               replyToMessageId: message.MessageId
+                               );
+            return;
+        }
     }
 }

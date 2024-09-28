@@ -15,6 +15,7 @@ public class YouTubeDownloader : IYouTubeDownloader
 
     public async Task<string> Download(string videoUrl)
     {
+        DateTime downloadStartTime = DateTime.Now;
         string url = videoUrl;
 
         var youtube = new YoutubeClient();
@@ -28,12 +29,13 @@ public class YouTubeDownloader : IYouTubeDownloader
 
         using (var httpClient = new HttpClient())
         using (var stream = await httpClient.GetStreamAsync(audioStreamInfo.Url))
-        using (var fileStream = new FileStream($"{video.Title}.mp3", FileMode.Create, FileAccess.Write, FileShare.None))
+        using (var fileStream = new FileStream($"downloads/{video.Title}.mp3", FileMode.Create, FileAccess.Write, FileShare.None))
         {
             await stream.CopyToAsync(fileStream);
         }
 
-        _logger.LogInformation($"Audio saved as {video.Title}.mp3");
-        return $"{video.Title}.mp3";
+        var duration =DateTime.Now - downloadStartTime;
+        _logger.LogInformation($"Audio saved as {video.Title}.mp3, it spent {duration}");
+        return $"downloads/{video.Title}.mp3";
     }
 }
