@@ -36,7 +36,7 @@ public class TelegramBot
     }
 
 
-    public async Task Main()
+    public async Task PollAsync()
     {
 
         _botClient = new TelegramBotClient("7673939994:AAG8IpfGn6uxNIKr4jSLfGgIq8u53oW2clk"); 

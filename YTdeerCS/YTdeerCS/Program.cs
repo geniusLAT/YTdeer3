@@ -9,24 +9,23 @@ using YoutubeExplode.Videos.Streams;
 using YTdeerCS.YouTubeDownloaders;
 using YTdeerCS.TelegramBot;
 using YTdeerCS.Loggers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 
 class Program
 {
     static async Task Main(string[] args)
     {
-        var YtdlLogger = new ConsoleLogger<YouTubeDownloader>();
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<ILogger<YouTubeDownloader>, ConsoleLogger<YouTubeDownloader>>()
+            .AddSingleton<IYouTubeDownloader, YouTubeDownloader>()
+            .AddSingleton<ILogger<TelegramBot>, ConsoleLogger<TelegramBot>>()
+            .AddSingleton<TelegramBot, TelegramBot>()
+            .BuildServiceProvider();
 
-        YouTubeDownloader downloader = new(YtdlLogger);
-        var task = Task.Run(()=>downloader.Download("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
-
-        var logger = new ConsoleLogger<TelegramBot>();
-
-        var bot = new TelegramBot(logger);
-        var botTask = Task.Run(() => bot.Main());
-
-        while(true) {; }
-
+        var bot = serviceProvider.GetService<TelegramBot>()!;
+        await bot.PollAsync();
     } 
 }
 
