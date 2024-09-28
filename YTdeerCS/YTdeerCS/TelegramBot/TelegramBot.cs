@@ -104,6 +104,7 @@ public class TelegramBot : ITelegramBot
                             "Что? Я же говорю, надо прислать ссылку на YouTube. Тут 0 букв. НОЛЬ. Карл", 
                             replyToMessageId: message.MessageId 
                             );
+                            return;
                         }
 
                         //await botClient.SendTextMessageAsync(
@@ -147,7 +148,7 @@ public class TelegramBot : ITelegramBot
 
             using (var stream = new FileStream(audioFilePath, FileMode.Open, FileAccess.Read))
             {
-                InputFile inputFile = new InputFileStream(stream);
+                InputFile inputFile = new InputFileStream(stream, audioFilePath.Split('\\').Last());
 
                 await botClient.SendAudioAsync(
                     chat.Id,
