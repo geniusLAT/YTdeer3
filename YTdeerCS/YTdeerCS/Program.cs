@@ -21,7 +21,7 @@ class Program
             .AddSingleton<ILogger<YouTubeDownloader>, ConsoleLogger<YouTubeDownloader>>()
             .AddSingleton<IYouTubeDownloader, YouTubeDownloader>()
             .AddSingleton<ILogger<TelegramBot>, ConsoleLogger<TelegramBot>>()
-            .AddSingleton<TelegramBot, TelegramBot>()
+            .AddSingleton<ITelegramBot, TelegramBot>()
             .BuildServiceProvider();
 
         var bot = serviceProvider.GetService<TelegramBot>()!;

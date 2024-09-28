@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace YTdeerCS.TelegramBot;
 
-public class TelegramBot
+public class TelegramBot : ITelegramBot
 {
     private ITelegramBotClient? _botClient;
 
