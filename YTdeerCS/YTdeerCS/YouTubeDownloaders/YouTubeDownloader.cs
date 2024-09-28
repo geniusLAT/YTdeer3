@@ -1,10 +1,17 @@
-﻿using YoutubeExplode;
+﻿using Microsoft.Extensions.Logging;
+using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
 
 namespace YTdeerCS.YouTubeDownloaders;
 
 public class YouTubeDownloader
 {
+    private ILogger<YouTubeDownloader> _logger;
+
+    public YouTubeDownloader(ILogger<YouTubeDownloader> logger)
+    {
+        _logger = logger;
+    }   
 
     public async Task<string> Download(string videoUrl)
     {
@@ -12,7 +19,8 @@ public class YouTubeDownloader
 
         var youtube = new YoutubeClient();
 
-        
+        _logger.LogInformation($"Attempt to download {videoUrl}");
+
         var video = await youtube.Videos.GetAsync(url);
 
         var streamManifest = await youtube.Videos.Streams.GetManifestAsync(video.Id);
@@ -25,7 +33,7 @@ public class YouTubeDownloader
             await stream.CopyToAsync(fileStream);
         }
 
-        Console.WriteLine($"Аудио сохранено как {video.Title}.mp3");
+        _logger.LogInformation($"Audio saved as {video.Title}.mp3");
         return $"{video.Title}.mp3";
     }
 }
